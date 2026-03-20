@@ -1,0 +1,12 @@
+{
+    "name": "sapling-serve",
+    "tree": {
+        "$className": "DataModel",
+
+        "ReplicatedStorage": {
+            "packages": {
+                "$path": "packages/"
+            }
+        }
+    }
+}
