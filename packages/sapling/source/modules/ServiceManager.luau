@@ -19,4 +19,19 @@ function ServiceManager.addService(module: ModuleScript, service: Service?)
 	services[module] = service
 end
 
+function ServiceManager.collectFunctions(name: string)
+	local functions = {} :: { (...any) -> () }
+
+	for _, v in services do
+		local fn = v[name]
+		if fn == nil then
+			continue
+		end
+
+		table.insert(functions, fn)
+	end
+
+	return functions
+end
+
 return ServiceManager

@@ -1,3 +1,4 @@
+local Lifecycle = require(script.classes.Lifecycle)
 local ServiceManager = require(script.modules.ServiceManager)
 local filterArray = require(script.modules.filterArray)
 
@@ -16,6 +17,15 @@ function Sapling.loadServices(parent: Instance, descendants: boolean)
 	for _, v in modules do
 		ServiceManager.addService(v)
 	end
+end
+
+function Sapling.fireLifecycle(name: string, ...: any)
+	local lifecycle = Lifecycle.new(name)
+	lifecycle:fire(...)
+end
+
+function Sapling.createLifecycle(name: string)
+	return Lifecycle.new(name)
 end
 
 return Sapling
