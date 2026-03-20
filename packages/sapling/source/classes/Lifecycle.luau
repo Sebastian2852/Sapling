@@ -1,4 +1,5 @@
-local ServiceManager = require(script.Parent.Parent.modules.ServiceManager)
+local BaseDispatcher = require(script.Parent.BaseDispatcher)
+local Dispatchers = require(script.Parent.Parent.Dispatchers)
 
 local lifecycles = {} :: { [string]: Lifecycle }
 
@@ -8,17 +9,24 @@ Lifecycle.__index = Lifecycle
 export type Lifecycle = typeof(setmetatable(
 	{} :: {
 		_Name: string,
+		_Dispatcher: BaseDispatcher.BaseDispatcher,
 	},
 	Lifecycle
 ))
 
-function Lifecycle.new(name: string)
+function Lifecycle.new(name: string, dispatcher: BaseDispatcher.BaseDispatcher?)
 	if lifecycles[name] ~= nil then
 		return lifecycles[name]
 	end
 
+	if dispatcher == nil then
+		-- Should we default to async or blocking?
+		dispatcher = Dispatchers.AsyncDispatcher.new()
+	end
+
 	local self = setmetatable({}, Lifecycle) :: Lifecycle
 	self._Name = name
+	self._Dispatcher = dispatcher
 
 	lifecycles[name] = self
 
@@ -26,10 +34,7 @@ function Lifecycle.new(name: string)
 end
 
 function Lifecycle.fire(self: Lifecycle, ...)
-	local functions = ServiceManager.collectFunctions(self._Name)
-	for _, v in functions do
-		v(...)
-	end
+	self._Dispatcher:dispatch(self._Name, ...)
 end
 
 return Lifecycle
