@@ -1,3 +1,4 @@
+local BaseDispatcher = require(script.classes.BaseDispatcher)
 local Lifecycle = require(script.classes.Lifecycle)
 local ServiceManager = require(script.modules.ServiceManager)
 local filterArray = require(script.modules.filterArray)
@@ -24,8 +25,20 @@ function Sapling.fireLifecycle(name: string, ...: any)
 	lifecycle:fire(...)
 end
 
-function Sapling.createLifecycle(name: string)
-	return Lifecycle.new(name)
+function Sapling.createLifecycle(name: string, dispatcher: BaseDispatcher.BaseDispatcher?)
+	return Lifecycle.new(name, dispatcher)
+end
+
+function Sapling.extendBaseDispatcher()
+	local newDispatcher = setmetatable({}, BaseDispatcher)
+	newDispatcher.__index = newDispatcher
+
+	function newDispatcher.new()
+		local self = setmetatable(BaseDispatcher.new(), newDispatcher)
+		return self
+	end
+
+	return newDispatcher
 end
 
 return Sapling

@@ -19,6 +19,13 @@ function Lifecycle.new(name: string, dispatcher: BaseDispatcher.BaseDispatcher?)
 		return lifecycles[name]
 	end
 
+	assert(typeof(name) == "string", "Name of a lifecycle must be a string")
+	assert(
+		BaseDispatcher.is(dispatcher),
+		"Passed dispatcher is not a dispatcher object, did you extend the base dispatcher class?"
+	)
+	assert(name ~= "", "Lifecycle name cannot be empty")
+
 	if dispatcher == nil then
 		-- Should we default to async or blocking?
 		dispatcher = Dispatchers.AsyncDispatcher.new()
