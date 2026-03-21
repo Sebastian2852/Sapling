@@ -22,3 +22,9 @@ Sapling = { repo = "Apple-Pear-Studios/Sapling", rev = "v1.0.0", path = "package
 ```
 
 Note how the path to the package has to be aded due to this repo being a mono-repo. In the future I might make a CLI tool to help with this if this project matures enough. However for the time being you will need to specify the path and tag/commit manually.
+
+## Packages
+
+| Package | Path | Docs |
+| :-----: | :--: | :---: |
+| Sapling | `packages/sapling` | [Docs](https://apple-pear-studios.github.io/Sapling/api/Sapling) |
