@@ -1,0 +1,3 @@
+Modified for the Sapling Framework, the following changes have been made:
+- Modified main client script to be a module script rather than a local script.
+- Modified main client module types to fix LSP issues.
