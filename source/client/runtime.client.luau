@@ -1,2 +1,4 @@
-local lifelikeCharacter = require(script.Parent.Parent.packages.lifelikeCharacter)
-lifelikeCharacter.start()
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local sapling = require(script.Parent.Parent.packages.sapling)
+
+sapling.loadPackages(ReplicatedStorage.packages)

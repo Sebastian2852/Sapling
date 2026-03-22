@@ -7,12 +7,12 @@
 --!strict
 
 local CollectionService = game:GetService("CollectionService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 
 local player = assert(Players.LocalPlayer)
 local FirstPerson = require(script.FirstPerson)
+local getRemote = require(script.Parent.Parent.modules.getRemote)
 local XZ_VECTOR3 = Vector3.new(1, 0, 1)
 
 local Config = require(script.Config) :: {
@@ -39,7 +39,7 @@ local Config = require(script.Config) :: {
 -- Main Logic
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-local setLookAngles = ReplicatedStorage:WaitForChild("SetLookAngles")
+local setLookAngles = getRemote("SetLookAngles")
 assert(setLookAngles:IsA("RemoteEvent"), "bad SetLookAngles")
 
 local module = {

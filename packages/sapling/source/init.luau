@@ -1,8 +1,10 @@
 local Dispatchers = require(script.Dispatchers)
 local BaseDispatcher = require(script.classes.BaseDispatcher)
 local Lifecycle = require(script.classes.Lifecycle)
+local Packages = require(script.modules.Packages)
 local ServiceManager = require(script.modules.ServiceManager)
 local filterArray = require(script.modules.filterArray)
+local safeRequire = require(script.modules.safeRequire)
 local types = require(script.types)
 
 export type Service = types.Service
@@ -15,6 +17,8 @@ local function instanceOf(className: string)
 	end
 end
 
+local havePackagesBeenStarted = false
+
 --[=[
 	@class Sapling
 	The main / core package of the Sapling framework.
@@ -26,11 +30,37 @@ local Sapling = {}
 ]=]
 function Sapling.loadServices(parent: Instance, recursive: boolean?)
 	local instances = if recursive then parent:GetDescendants() else parent:GetChildren()
-	local modules = filterArray(instances, instanceOf("ModuleScript"))
+	local modules = filterArray(instances, instanceOf("ModuleScript")) :: { ModuleScript }
 
 	for _, v in modules do
 		ServiceManager.addService(v)
 	end
+end
+
+--[=[
+	This function only needs to be called if you are using any other Sapling Framework packages,
+	simply point it to your Packages folder and Sapling will handle the rest.
+]=]
+function Sapling.loadPackages(packagesFolder: Folder)
+	assert(not havePackagesBeenStarted, "You can only call loadPackages one time")
+
+	local instances = packagesFolder:GetDescendants()
+	local modules = filterArray(instances, instanceOf("ModuleScript")) :: { ModuleScript }
+
+	_G.Sapling = Packages.getGlobalAPI()
+	for _, v in modules do
+		-- We use safe require here and discard any errors because some modules may
+		-- have some asserts about being on the server/client.
+		safeRequire(v)
+	end
+	_G.Sapling = nil
+
+	local packageModules = Packages.getModules()
+	for _, v in packageModules do
+		ServiceManager.addService(v)
+	end
+
+	Packages.callLifecycles()
 end
 
 --[=[

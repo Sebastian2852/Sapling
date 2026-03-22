@@ -4,13 +4,10 @@
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local CollectionService = game:GetService("CollectionService")
+local getRemote = require(script.Parent.Parent.modules.getRemote)
 
-local setLookAngles = Instance.new("RemoteEvent")
-setLookAngles.Archivable = false
-setLookAngles.Name = "SetLookAngles"
-setLookAngles.Parent = ReplicatedStorage
+local setLookAngles = getRemote("SetLookAngles")
 
 local function onReceiveLookAngles(player, pitch, yaw)
 	if typeof(pitch) ~= "number" or pitch ~= pitch then
@@ -47,7 +44,13 @@ for _, player in pairs(Players:GetPlayers()) do
 	onPlayerAdded(player)
 end
 
-Players.PlayerAdded:Connect(onPlayerAdded)
-setLookAngles.OnServerEvent:Connect(onReceiveLookAngles)
+local Server = {}
+
+function Server.start()
+	Players.PlayerAdded:Connect(onPlayerAdded)
+	setLookAngles.OnServerEvent:Connect(onReceiveLookAngles)
+end
+
+return Server
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

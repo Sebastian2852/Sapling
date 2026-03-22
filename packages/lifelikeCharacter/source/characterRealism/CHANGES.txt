@@ -1,3 +1,4 @@
 Modified for the Sapling Framework, the following changes have been made:
-- Modified main client script to be a module script rather than a local script.
+- Both scripts have been made into modules, with a `start` function.
 - Modified main client module types to fix LSP issues.
+- Modified remote event to be found and created by the "getRemote".

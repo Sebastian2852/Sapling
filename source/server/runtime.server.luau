@@ -1,6 +1,8 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local BlockingDispatcher = require(script.Parent.BlockingDispatcher)
 local sapling = require(script.Parent.Parent.Parent.ReplicatedStorage.packages.sapling)
 
+sapling.loadPackages(ReplicatedStorage.packages)
 sapling.loadServices(script.Parent.services)
 sapling.fireLifecycle("onStart")
 
