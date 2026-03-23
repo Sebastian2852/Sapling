@@ -5,10 +5,10 @@ name = "apple_pear_studio/sapling"
 version = "0.0.0"
 target = "roblox"
 
-[workspace."sapling/canopy"]
-roblox = "packages/canopy"
+[workspace."sapling/lifelike_characters_service"]
+roblox = "packages/lifelikeCharactersService"
 
-[workspace."sapling/core"]
+[workspace."sapling/sapling"]
 roblox = "packages/sapling"
 
 [graph."0x5eal/unzip@0.2.0 luau".pkg_ref]
