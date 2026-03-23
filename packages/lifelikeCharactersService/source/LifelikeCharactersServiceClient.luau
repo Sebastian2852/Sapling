@@ -45,7 +45,8 @@ function LifelikeCharactersServiceClient.setup()
 	assert(not isSetup, "Setup has already been called")
 	isSetup = true
 	FootstepSystem.setupFootsteps()
-	FirstPersonBody.setup()
+
+	RunService:BindToRenderStep("FirstPerson", Enum.RenderPriority.Camera.Value, FirstPersonBody.makeCharacterVisible)
 
 	local updateLookAnglesRemote = getRemote("UpdateLookAngles")
 	updateLookAnglesRemote.OnClientEvent:Connect(function(character: Model, yAngle: number, xAngle: number)
