@@ -19,3 +19,4 @@ example:
 
 ### Changes
 - `sapling`: new function to load other Sapling Framework packages from your Packages folder.
+- `sapling`: warn if a module does't return a table when using `loadServices`.
