@@ -1,5 +1,6 @@
 local Players = game:GetService("Players")
-local getRemote = require(script.Parent.modules.getRemote)
+
+local Network = require(script.Parent.modules.Network)
 
 local isSetup = false
 local isReplicationEnabled = true
@@ -38,24 +39,23 @@ function LifelikeCharactersServiceServer.setup()
 	assert(not isSetup, "Setup has already been called")
 	isSetup = true
 
-	local updateLookAnglesRemote = getRemote("UpdateLookAngles")
-	updateLookAnglesRemote.OnServerEvent:Connect(function(player: Player, yAngle: number, xAngle: number)
+	Network.UpdateLookAnglesRemote.OnServerEvent:Connect(function(player: Player, buf: buffer)
 		if not isReplicationEnabled then
 			return
 		end
 
-		if typeof(yAngle) ~= "number" then
+		if typeof(buf) ~= "buffer" then
 			return
 		end
-		if typeof(xAngle) ~= "number" then
-			return
-		end
+
+		local yAngle, xAngle = Network.desLookAngles(buf)
+		local newBuf = Network.serLookAngles(math.clamp(yAngle, -1, 1), math.clamp(xAngle, -1, 1))
 
 		for _, v in Players:GetPlayers() do
 			if v.UserId == player.UserId then
 				continue
 			end
-			updateLookAnglesRemote:FireClient(v, player.Character, yAngle, xAngle)
+			Network.UpdateLookAnglesRemote:FireClient(v, player.Character, newBuf)
 		end
 	end)
 end

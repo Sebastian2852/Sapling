@@ -5,7 +5,7 @@ local Workspace = game:GetService("Workspace")
 local FirstPersonBody = require(script.Parent.modules.FirstPersonBody)
 local FootstepSystem = require(script.Parent.modules.FootstepSystem)
 local HeadSystem = require(script.Parent.modules.HeadSystem)
-local getRemote = require(script.Parent.modules.getRemote)
+local Network = require(script.Parent.modules.Network)
 
 local isSetup = false
 local player = Players.LocalPlayer
@@ -73,11 +73,11 @@ function LifelikeCharactersServiceClient.setup()
 
 	RunService:BindToRenderStep("FirstPerson", Enum.RenderPriority.Camera.Value, FirstPersonBody.makeCharacterVisible)
 
-	local updateLookAnglesRemote = getRemote("UpdateLookAngles")
-	updateLookAnglesRemote.OnClientEvent:Connect(function(character: Model, yAngle: number, xAngle: number)
+	Network.UpdateLookAnglesRemote.OnClientEvent:Connect(function(character: Model, buf: buffer)
 		if character == nil then
 			return
 		end
+		local yAngle, xAngle = Network.desLookAngles(buf)
 		HeadSystem.updateLookAngles(character, yAngle, xAngle)
 	end)
 
@@ -102,9 +102,8 @@ function LifelikeCharactersServiceClient.setup()
 			if headReplication.lastXAngleSent == xAngle or headReplication.lastYAngleSent == yAngle then
 				return
 			end
-			updateLookAnglesRemote:FireServer(yAngle, xAngle)
+			Network.UpdateLookAnglesRemote:FireServer(Network.serLookAngles(yAngle, xAngle))
 			headReplication.lastXAngleSent, headReplication.lastYAngleSent = xAngle, yAngle
-			print("REPLICATING")
 		end
 	end)
 end
