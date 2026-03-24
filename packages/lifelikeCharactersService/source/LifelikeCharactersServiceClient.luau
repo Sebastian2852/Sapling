@@ -10,6 +10,13 @@ local getRemote = require(script.Parent.modules.getRemote)
 local isSetup = false
 local player = Players.LocalPlayer
 
+local headReplication = {
+	rate = 1 / 30,
+	lastSent = 0,
+	lastXAngleSent = 0,
+	lastYAngleSent = 0,
+}
+
 --[=[
     @class LifelikeCharactersServiceClient
     @client
@@ -17,6 +24,17 @@ local player = Players.LocalPlayer
     Can be accessed via [LifelikeCharactersService.getClient].
 ]=]
 local LifelikeCharactersServiceClient = {}
+
+--[=[
+	Override the head replication rate, by default the rate is `1/20`.
+
+	:::warning
+	You shouldn't mess with this too much as higher values can cause bandwidth issues.
+	:::
+]=]
+function LifelikeCharactersServiceClient.setHeadRotationReplicationRate(rate: number)
+	headReplication.rate = rate
+end
 
 --[=[
 	[HeadSystem.setCustomHeadOffset]
@@ -63,7 +81,10 @@ function LifelikeCharactersServiceClient.setup()
 		HeadSystem.updateLookAngles(character, yAngle, xAngle)
 	end)
 
-	RunService.Heartbeat:Connect(function()
+	local count = 0
+	RunService.Heartbeat:Connect(function(dt)
+		count += dt
+
 		local character = player.Character
 		if character == nil then
 			return
@@ -76,7 +97,15 @@ function LifelikeCharactersServiceClient.setup()
 		local yAngle = -math.asin(cameraDireaction.X)
 		local xAngle = math.asin(cameraDireaction.Y)
 		HeadSystem.updateLookAngles(character, yAngle, xAngle)
-		updateLookAnglesRemote:FireServer(yAngle, xAngle)
+
+		if count >= headReplication.rate then
+			if headReplication.lastXAngleSent == xAngle or headReplication.lastYAngleSent == yAngle then
+				return
+			end
+			updateLookAnglesRemote:FireServer(yAngle, xAngle)
+			headReplication.lastXAngleSent, headReplication.lastYAngleSent = xAngle, yAngle
+			print("REPLICATING")
+		end
 	end)
 end
 
