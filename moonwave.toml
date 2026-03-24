@@ -1,4 +1,7 @@
 title = "Sapling Framework"
 gitSourceBranch = "main"
 autoSectionPath = "packages"
+
+[docusaurus]
+url = "https://sapling.itsabitrandom.com/"
 baseUrl = "/"
