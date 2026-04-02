@@ -14,6 +14,9 @@ example:
 
 ## Unreleased
 
+### BREAKING-CHANGES
+- `sapling`: Service are now meant to be singleton classes.
+
 ## v1.2.0
 
 ### Additions
