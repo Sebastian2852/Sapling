@@ -35,3 +35,4 @@ Below is a list of every pacakge and its path and docs link.
 | Sapling | `packages/sapling` | [Docs](https://sapling.itsabitrandom.com/api/Sapling) |
 | Lifelike Characters Service | `packages/lifelikeCharactersService` | [Docs](https://sapling.itsabitrandom.com/api/LifelikeCharactersService) |
 | QueryDescendants | `packages/queryDescendants` | [Docs](https://sapling.itsabitrandom.com/api/QueryDescendants) |
+| Registry | `packages/registry` | [Docs](https://sapling.itsabitrandom.com/api/Registry) |
