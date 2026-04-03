@@ -1,0 +1,12 @@
+{
+    "name": "baseObject",
+    "tree": {
+        "$className": "Folder",
+        "roblox_packages": {
+            "$path": "roblox_packages"
+        },
+        "baseObject": {
+            "$path": "source"
+        }
+    }
+}
