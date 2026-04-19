@@ -17,3 +17,5 @@ sourcemap_generator = ".pesde/scripts/sourcemap_generator.luau"
 [dev_dependencies]
 scripts = { name = "pesde/scripts_rojo", version = "^0.2.0", target = "lune" }
 rojo = { name = "pesde/rojo", version = "^7.5.1", target = "lune" }
+stylua = { name = "pesde/stylua", version = "^2.4.1", target = "lune" }
+selene = { name = "pesde/selene", version = "^0.30.1", target = "lune" }
