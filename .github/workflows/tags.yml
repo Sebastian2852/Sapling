@@ -59,22 +59,34 @@ jobs:
             package=$(echo "$file" | cut -d'/' -f2)
             tag="${package}@${new_version}"
             output="${package}.rbxm"
+            changelog="packages/$package/CHANGELOG.md"
 
             echo "Creating tag $tag"
 
             if ! git rev-parse "$tag" >/dev/null 2>&1; then
               git tag "$tag"
               git push origin "$tag"
-            else
-              echo "Tag exists, skipping tag creation"
             fi
 
             echo "Building $package"
             rojo build "packages/$package" -o "$output"
 
-            echo "Creating GitHub release + uploading asset"
+            echo "Extracting changelog for $new_version"
+
+            if [ -f "$changelog" ]; then
+              notes=$(awk "/^## $new_version$/,/^## /" "$changelog" | sed '1d;$d')
+            else
+              notes="Release for $package@$new_version"
+            fi
+
+            if [ -z "$notes" ]; then
+              notes="Release for $package@$new_version"
+            fi
+
+            echo "Creating GitHub release"
+
             gh release create "$tag" "$output" \
               --title "$tag" \
-              --notes "Release for $package@$new_version" \
+              --notes "$notes" \
               || gh release upload "$tag" "$output" --clobber
           done
