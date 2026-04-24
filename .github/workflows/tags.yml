@@ -136,7 +136,7 @@ jobs:
           echo "packages=$RELEASE_LIST" >> $GITHUB_OUTPUT
 
       - name: Publish to pesde
-        run: pesde publish
+        run: pesde publish -d -y
 
       - name: Run updatePackages script
         run: bash bin/updatePackages.sh
