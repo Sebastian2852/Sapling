@@ -1,0 +1,65 @@
+name: tag-packages-on-version-change
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get changed pesde.toml files
+        id: changed
+        run: |
+          BEFORE="${{ github.event.before }}"
+          AFTER="${{ github.sha }}"
+
+          echo "Diffing $BEFORE -> $AFTER"
+
+          files=$(git diff --name-only "$BEFORE" "$AFTER" | grep '^packages/.*/pesde.toml' || true)
+
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          echo "$files" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Process version changes and tag
+        if: steps.changed.outputs.files != ''
+        run: |
+          BEFORE="${{ github.event.before }}"
+
+          echo "${{ steps.changed.outputs.files }}" | while read file; do
+            [ -z "$file" ] && continue
+
+            echo "Processing $file"
+
+            old_version=$(git show "$BEFORE:$file" | grep '^version' | head -n1 | sed 's/.*"\(.*\)".*/\1/' || true)
+            new_version=$(grep '^version' "$file" | head -n1 | sed 's/.*"\(.*\)".*/\1/' || true)
+
+            if [ "$old_version" = "$new_version" ]; then
+              echo "Version unchanged, skipping"
+              continue
+            fi
+
+            package=$(echo "$file" | cut -d'/' -f2)
+            tag="${package}@${new_version}"
+
+            echo "Tagging $tag"
+
+            if git rev-parse "$tag" >/dev/null 2>&1; then
+              echo "Tag already exists, skipping"
+              continue
+            fi
+
+            git tag "$tag"
+            git push origin "$tag"
+          done
