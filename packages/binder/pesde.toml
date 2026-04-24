@@ -1,5 +1,5 @@
 name = "sapling/binder"
-version = "1.0.5"
+version = "1.5.0"
 license = "MIT"
 repository = "https://github.com/Its-a-bit-random/Sapling"
 authors = [ "Sebastian S <gramps@itsabitrandom.com>" ]
