@@ -7,6 +7,10 @@ local SweeperUtils = {}
     Check if the passed `obj` is something which can be handled by a Sweeper.
 ]=]
 function SweeperUtils.IsValid(obj: any, destroyMethod: string?)
+    if obj == nil then
+        return false
+    end
+
     if typeof(obj) == "function" then
         return true
     end
