@@ -1,4 +1,4 @@
-name: tag-and-release-packages
+name: release-packages
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  tag-and-release:
+  release:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,14 +21,18 @@ jobs:
       - name: Setup pesde
         uses: lumin-org/setup-pesde@v0.4.1
 
-      - name: Install deps (rojo)
+      - name: Install deps
         run: pesde i
 
-      - name: Find changed pesde.toml files
-        id: changed
+      - name: Detect changed package versions
+        id: detect
         run: |
+          set -e
+
           BEFORE="${{ github.event.before }}"
           AFTER="${{ github.sha }}"
+
+          echo "Diffing $BEFORE -> $AFTER"
 
           files=$(git diff --name-only "$BEFORE" "$AFTER" | grep '^packages/.*/pesde.toml' || true)
 
@@ -36,70 +40,118 @@ jobs:
           echo "$files" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Tag, build, and release
-        if: steps.changed.outputs.files != ''
+      - name: Process releases
+        id: process
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -e
 
           BEFORE="${{ github.event.before }}"
+          RELEASE_LIST=""
 
-          echo "${{ steps.changed.outputs.files }}" | while read file; do
+          echo "${{ steps.detect.outputs.files }}" | while read file; do
             [ -z "$file" ] && continue
 
-            echo "Processing $file"
+            package=$(echo "$file" | cut -d'/' -f2)
 
             old_version=$(git show "$BEFORE:$file" | grep '^version' | head -n1 | sed 's/.*"\(.*\)".*/\1/' || true)
             new_version=$(grep '^version' "$file" | head -n1 | sed 's/.*"\(.*\)".*/\1/' || true)
 
             if [ "$old_version" = "$new_version" ]; then
-              echo "Version unchanged, skipping"
+              echo "No version bump for $package"
               continue
             fi
 
-            package=$(echo "$file" | cut -d'/' -f2)
             tag="${package}@${new_version}"
             output="${package}.rbxm"
             changelog="packages/$package/CHANGELOG.md"
 
-            echo "Tag: $tag"
+            echo "Processing $tag"
 
-            if ! git rev-parse "$tag" >/dev/null 2>&1; then
-              git tag "$tag"
-              git push origin "$tag"
+            # -----------------------------
+            # Build changelog from commits
+            # -----------------------------
+
+            mkdir -p tmp
+
+            if [ -f "$changelog" ]; then
+              notes_file="tmp/${package}_notes.md"
+
+              # get commits affecting this package since last version change
+              range="$BEFORE..HEAD"
+
+              commits=$(git log $range --pretty=format:"- %s (%h)" -- packages/$package || true)
+
+              # extract existing changelog section (if exists)
+              existing_notes=$(awk -v ver="$new_version" '
+                $0 ~ "^##[[:space:]]+" ver "[[:space:]]*$" {flag=1; next}
+                $0 ~ "^##[[:space:]]+" && flag {flag=0}
+                flag {print}
+              ' "$changelog")
+
+              # rebuild changelog entry
+              {
+                echo "## $new_version"
+                echo ""
+                if [ ! -z "$existing_notes" ]; then
+                  echo "$existing_notes"
+                  echo ""
+                fi
+
+                if [ ! -z "$commits" ]; then
+                  echo "$commits"
+                fi
+              } > "$notes_file"
+
+              notes=$(cat "$notes_file")
             else
-              echo "Tag already exists, skipping tag creation"
-            fi
-
-            echo "Building $package"
-            rojo build "packages/$package" -o "$output"
-
-            echo "Extracting changelog for $new_version"
-
-            if [ ! -f "$changelog" ]; then
               echo "❌ Missing CHANGELOG.md for $package"
               exit 1
             fi
 
-            notes=$(awk -v ver="$new_version" '
-              $0 ~ "^##[[:space:]]+" ver "[[:space:]]*$" {flag=1; next}
-              $0 ~ "^##[[:space:]]+" && flag {flag=0}
-              flag {print}
-            ' "$changelog")
+            # -----------------------------
+            # Build package
+            # -----------------------------
 
-            notes=$(echo "$notes" | sed '/^[[:space:]]*$/d')
+            rojo build "packages/$package" -o "$output"
 
-            if [ -z "$notes" ]; then
-              echo "❌ Missing release notes for version $new_version in $changelog"
-              echo "Expected section: ## $new_version"
-              exit 1
+            # -----------------------------
+            # Create tag + release
+            # -----------------------------
+
+            if ! git rev-parse "$tag" >/dev/null 2>&1; then
+              git tag "$tag"
+              git push origin "$tag"
             fi
-
-            echo "Creating GitHub release"
 
             gh release create "$tag" "$output" \
               --title "$tag" \
               --notes "$notes" \
               || gh release upload "$tag" "$output" --clobber
+
+            RELEASE_LIST="$RELEASE_LIST $package"
           done
+
+          echo "packages=$RELEASE_LIST" >> $GITHUB_OUTPUT
+
+      - name: Publish to pesde
+        run: pesde publish
+
+      - name: Run updatePackages script
+        run: bash bin/updatePackages.sh
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          git commit -m "chore: update packages after release"
+          git push
