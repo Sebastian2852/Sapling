@@ -126,12 +126,12 @@ pathfs = [{ name = "jiwonz/pathfs", version = "^0.6.0", index = "https://github.
 result = [{ name = "lukadev_0/result", version = "^1.2.1", index = "https://github.com/pesde-pkg/index" }, "peer"]
 unzip = [{ name = "0x5eal/unzip", version = "^0.2.0", index = "https://github.com/pesde-pkg/index", target = "luau" }, "standard"]
 
-[graph."sapling/sweeper@1.0.0 roblox"]
+[graph."sapling/sweeper@1.0.1 roblox"]
 direct = ["Sweeper", { workspace = "sapling/sweeper", version = "^1.0.0" }, "standard"]
 
-[graph."sapling/sweeper@1.0.0 roblox".pkg_ref]
+[graph."sapling/sweeper@1.0.1 roblox".pkg_ref]
 ref_ty = "workspace"
 path = "packages/sweeper"
 
-[graph."sapling/sweeper@1.0.0 roblox".pkg_ref.dependencies]
+[graph."sapling/sweeper@1.0.1 roblox".pkg_ref.dependencies]
 scripts = [{ name = "pesde/scripts_rojo", version = "^0.2.0", index = "https://github.com/pesde-pkg/index", target = "lune" }, "dev"]
