@@ -41,6 +41,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -e
+
           BEFORE="${{ github.event.before }}"
 
           echo "${{ steps.changed.outputs.files }}" | while read file; do
@@ -61,11 +63,13 @@ jobs:
             output="${package}.rbxm"
             changelog="packages/$package/CHANGELOG.md"
 
-            echo "Creating tag $tag"
+            echo "Tag: $tag"
 
             if ! git rev-parse "$tag" >/dev/null 2>&1; then
               git tag "$tag"
               git push origin "$tag"
+            else
+              echo "Tag already exists, skipping tag creation"
             fi
 
             echo "Building $package"
@@ -73,14 +77,23 @@ jobs:
 
             echo "Extracting changelog for $new_version"
 
-            if [ -f "$changelog" ]; then
-              notes=$(awk "/^## $new_version$/,/^## /" "$changelog" | sed '1d;$d')
-            else
-              notes="Release for $package@$new_version"
+            if [ ! -f "$changelog" ]; then
+              echo "❌ Missing CHANGELOG.md for $package"
+              exit 1
             fi
 
+            notes=$(awk -v ver="$new_version" '
+              $0 ~ "^##[[:space:]]+" ver "[[:space:]]*$" {flag=1; next}
+              $0 ~ "^##[[:space:]]+" && flag {flag=0}
+              flag {print}
+            ' "$changelog")
+
+            notes=$(echo "$notes" | sed '/^[[:space:]]*$/d')
+
             if [ -z "$notes" ]; then
-              notes="Release for $package@$new_version"
+              echo "❌ Missing release notes for version $new_version in $changelog"
+              echo "Expected section: ## $new_version"
+              exit 1
             fi
 
             echo "Creating GitHub release"
